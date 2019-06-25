@@ -11,4 +11,10 @@ movies.forEach((movie) => {
   });
 });
 
+connection.query('create table directors(id int primary key auto_increment) select distinct director from movies', (error) => {
+  if (error) {
+    throw error;
+  }
+});
+
 connection.end();
