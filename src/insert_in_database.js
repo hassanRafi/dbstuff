@@ -98,7 +98,7 @@ const tableNamesAndSchemas = [
   {
     tableName: 'movies',
     schema: `rank int primary key auto_increment,
-    title varchar(500),
+    title varchar(500) not null,
     description varchar(500),
     runtime int,
     genre varchar(500),
