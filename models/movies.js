@@ -17,7 +17,7 @@ function getMovies() {
 
 function getMovieWithId(id) {
   return new Promise((resolve, reject) => {
-    connection.query(`select title from movies where rank = ${id}`, (error, results) => {
+    connection.query(`select * from movies where rank = ${id}`, (error, results) => {
       if (error) {
         reject(error);
       }
@@ -29,7 +29,7 @@ function getMovieWithId(id) {
 function addMovieHelper(movieInfo) {
   return new Promise((resolve, reject) => {
     directors.addDirector(movieInfo.directorName).then((res) => {
-      connection.query(`select id from directors where director = '${res}'`, (err, results) => {
+      connection.query(`select id from directors where director = '${res[0].director}'`, (err, results) => {
         if (err) reject(err);
         resolve(results[0].id);
       });
