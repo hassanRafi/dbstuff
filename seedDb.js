@@ -42,6 +42,12 @@ function insertIntoMovies(data) {
 }
 
 // Director.hasMany(Movie);
+Movie.belongsTo(Director, {
+  foreignKey: {
+    name: 'director_id',
+    allowNull: false,
+  },
+});
 
 connectToDb(sequelize)
   .then(() => {
@@ -50,11 +56,22 @@ connectToDb(sequelize)
   .catch((err) => {
     console.log('Unable to connect to the database:', err);
   })
-  .then(() => Director.sync({ force: true }))
-  .then(() => console.log('Director table created'))
+  .then(() => sequelize.sync({ force: true }))
+  .then(() => console.log('Tables created'))
   .then(() => Promise.all(insertIntoDirectors(data)))
   .then(() => console.log('Director Table Populated'))
-  .then(() => Movie.sync({ force: true }))
-  .then(() => console.log('Movie table created'))
   .then(() => Promise.all(insertIntoMovies(data)))
-  .then(() => console.log('Movie Table Populated'));
+  .then(() => console.log('Movie Table Populated'))
+  // .then(() => Movie.findAll({ include: [Director] }))
+  // .then(movies => console.log(movies))
+  .then(() => {
+    Movie.findAll({
+      include: [{
+        model: Director,
+        required: true
+       }]
+    }).then(posts => {
+      console.log(posts);
+    });
+  })
+  .catch(err => console.log(err));

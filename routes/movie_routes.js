@@ -2,37 +2,58 @@ const express = require('express');
 
 const Joi = require('@hapi/joi');
 
-const movies = require('../models/movies');
+const Movie = require('../models/movies');
+
+const Director = require('../models/directors');
 
 const movieRouter = express.Router();
 
 const validation = require('../validation/validation');
 
+Movie.belongsTo(Director, {
+  foreignKey: {
+    name: 'director_id',
+    allowNull: false,
+  },
+});
+
 movieRouter.get('/', (req, res) => {
-  movies.getMovies().then((results) => {
-    res.send(results);
-  })
-    .catch(err => console.log(err));
+  Movie.findAll().then(result => res.send(result));
 });
 
 movieRouter.get('/:movieId', (req, res) => {
-  movies.getMovieWithId(req.params.movieId).then((results) => {
-    if (results.length === 0) {
-      res.status(400).send('No such movie exists');
-    } else {
-      res.send(results);
-    }
-  })
-    .catch(err => console.log(err));
+  const { error } = Joi.validate({ movieId: req.params.movieId }, validation.movieId);
+  if (error === null) {
+    Movie.findOne({ where: { rank: req.params.movieId } })
+      .then((movie) => {
+        if (movie === null) {
+          res.status(400).send('No such movie exists with the given id');
+        } else {
+          res.send(movie);
+        }
+      })
+      .catch(err => console.log(err));
+  } else {
+    res.send('Please provide the id as integer');
+  }
 });
 
 movieRouter.post('/', (req, res) => {
-  const { error: movieIdError } = Joi.validate(req.body, validation.movieId);
-  const { error: movieDetailsError } = Joi.validate(req.body, validation.schemaMovieAdd);
-  if (movieIdError === null && movieDetailsError === null) {
-    movies.addMovie(req.body).then(results => res.send(results));
+  const { error } = Joi.validate(req.body, validation.schemaMovieAdd);
+  if (error === null) {
+    Director.findOne({ where: { id: req.body.director_id } })
+      .then((result) => {
+        if (result === null) {
+          res.status(400).send('Movie can\'t be added because the director doesn\'t exist');
+        } else {
+          Movie.create(req.body)
+            .then(addedEntry => res.send(addedEntry))
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
   } else {
-    res.status(400).send('Please provide the correct keys and values');
+    res.status(400).send('There is something wrong with the provided detials');
   }
 });
 
@@ -40,16 +61,44 @@ movieRouter.put('/:movieId', (req, res) => {
   const { error: movieIdError } = Joi.validate(req.params, validation.movieId);
   const { error: movieDetailsError } = Joi.validate(req.body, validation.schemaMovieUpdate);
   if (movieIdError === null && movieDetailsError === null) {
-    movies.updateMovie(req.params.movieId, req.body).then(result => res.send(result));
+    Movie.findOne({ where: { rank: req.params.movieId } })
+      .then((movie) => {
+        if (movie === null) {
+          res.status(400).send('No movie exists with the given id');
+        } else {
+          Director.findOne({ where: { id: req.body.director_id } })
+            .then((director) => {
+              if (director === null) {
+                res.status(400).send('Movie can\'t be updated because no director exists with the given id');
+              } else {
+                movie.update(req.body).then(result => res.send(result)).catch(err => console.log(err));
+              }
+            })
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
   } else {
-    res.status(400).send('Please provide the number as id');
+    res.status(400).send('There is problem either with the id or the movie details');
   }
 });
 
 movieRouter.delete('/:movieId', (req, res) => {
-  const { error: movieIdError } = Joi.validate(req.params, validation.movieId);
-  if (movieIdError === null) {
-    movies.deleteMovie(req.params.movieId).then(results => res.send(results));
+  const { error } = Joi.validate(req.params, validation.movieId);
+  if (error === null) {
+    Movie.findOne({ where: { rank: req.params.movieId } })
+      .then((movie) => {
+        if (movie === null) {
+          res.status(400).send('No such movie exists with this id');
+        } else {
+          movie.destroy()
+            .then(result => res.send(result))
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
+  } else {
+    res.status(400).send('Please provide the id as integer');
   }
 });
 

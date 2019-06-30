@@ -35,10 +35,10 @@ Movies.init({
   gross_earning_in_mil: {
     type: Sequelize.STRING,
   },
-  director_id: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
+  // director_id: {
+  //   type: Sequelize.INTEGER,
+  //   allowNull: false,
+  // },
   actor: {
     type: Sequelize.STRING,
   },
