@@ -13,7 +13,7 @@ const schemaMovieAdd = Joi.object().keys({
   metascore: Joi.number().required(),
   votes: Joi.number().required(),
   gross_earning_in_mil: Joi.number().required(),
-  directorName: Joi.string().min(1).max(30).required(),
+  director_id: Joi.number().required(),
   actor: Joi.string().min(2).max(30).required(),
   year: Joi.number().required(),
 });
@@ -36,9 +36,19 @@ const movieId = Joi.object().keys({
   movieId: Joi.number().required(),
 });
 
+const directorId = Joi.object().keys({
+  id: Joi.number().required(),
+});
+
+const directorName = Joi.object().keys({
+  director: Joi.string().required(),
+});
+
 module.exports = {
   schemaDirectorAdd,
   schemaMovieAdd,
   movieId,
   schemaMovieUpdate,
+  directorId,
+  directorName,
 };

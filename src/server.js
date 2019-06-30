@@ -10,7 +10,7 @@ const app = express();
 
 app.use(bodyParser.json()); // body was undefined before using this
 
-const port = 4000;
+const port = 5000;
 
 app.use('/api/directors', directorRouter);
 

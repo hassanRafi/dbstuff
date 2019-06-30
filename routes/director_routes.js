@@ -2,63 +2,86 @@ const express = require('express');
 
 const Joi = require('@hapi/joi');
 
-const directors = require('../models/directors');
+const Director = require('../models/directors');
 
 const directorRouter = express.Router();
 
 const validation = require('../validation/validation');
 
 directorRouter.get('/', (req, res) => {
-  directors.getDirectors().then((results) => {
-    res.send(results);
-  })
-    .catch(err => console.log(err));
+  Director.findAll().then(result => res.send(result)).catch(err => console.log(err));
 });
 
 directorRouter.get('/:id', (req, res) => {
-  directors.getDirectorWithIds(req.params.id)
-    .then((results) => {
-      if (results.length === 0) {
-        res.status(400).send('No director with give id');
+  const { error } = Joi.validate({ id: req.params.id }, validation.directorId);
+  Director.findOne({ where: { id: req.params.id } })
+    .then((result) => {
+      if (result === null || error !== null) {
+        res.status(400).send('No director exists with this id');
       } else {
-        res.send(results);
+        res.send(result);
       }
     })
     .catch(err => console.log(err));
 });
 
 directorRouter.post('/', (req, res) => {
-  const { error: err } = Joi.validate(req.body, validation.schemaDirectorAdd);
-  if (err) {
-    res.status(400).send('Please provide the \'director\' as key');
+  const { error } = Joi.validate(req.body, validation.schemaDirectorAdd);
+  if (error !== null) {
+    res.status(400).send('Please provide correct details');
   } else {
-    directors.addDirector(req.body.director).then((results) => {
-      res.send(results);
-    })
-      .catch(error => console.log(error));
+    Director.findOne({ where: { director: req.body.director } })
+      .then((result) => {
+        if (result === null) {
+          Director.create({ director: req.body.director })
+            .then(r => res.send(r))
+            .catch(err => console.log(err));
+        } else {
+          res.status(400).send('The director with this name already exists');
+        }
+      })
+      .catch(err => console.log(err));
   }
 });
 
 directorRouter.put('/:directorId', (req, res) => {
-  const { director: newDirName } = req.body;
-  directors.updateDirector(newDirName, req.params.directorId).then((results) => {
-    if (results.affectedRows === 1) {
-      res.send({
-        director: newDirName,
-        id: req.params.directorId,
-      });
-    } else {
-      res.status(400).send('No such director exists');
-    }
-  })
-    .catch(err => console.log(err));
+  const { error: idError } = Joi.validate({ id: req.params.directorId }, validation.directorId);
+  const { error: nameError } = Joi.validate(req.body, validation.directorName);
+
+  if (idError === null && nameError === null) {
+    Director.findOne({ where: { id: req.params.directorId } })
+      .then((dir) => {
+        if (dir === null) {
+          res.status(400).send('No director with the given id exists');
+        } else {
+          dir.update({
+            director: req.body.director,
+          }).then(result => res.send(result)).catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
+  } else {
+    res.status(400).send('There is a problem either with id or name of director');
+  }
 });
 
 directorRouter.delete('/:directorId', (req, res) => {
-  directors.deleteDirector(req.params.directorId).then((results) => {
-    res.send(results);
-  })
-    .catch(err => console.log(err));
+  const { error } = Joi.validate({ id: req.params.directorId }, validation.directorId);
+  if (error === null) {
+    Director.findOne({ where: { id: req.params.directorId } })
+      .then((dir) => {
+        if (dir === null) {
+          res.status(400).send('No director with the given id exists');
+        } else {
+          dir.destroy()
+            .then(delDir => res.send(delDir))
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
+  } else {
+    res.status(400).send('Please provide the director id as an integer');
+  }
 });
 
 module.exports = directorRouter;
