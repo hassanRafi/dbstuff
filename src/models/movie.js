@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../utils/connection');
+const Director = require('./director');
 
-class Movies extends Sequelize.Model {}
+class Movie extends Sequelize.Model {}
 
-Movies.init({
+Movie.init({
   // attributes
   rank: {
     type: Sequelize.INTEGER,
@@ -46,4 +47,13 @@ Movies.init({
   modelName: 'movie',
 });
 
-module.exports = Movies;
+Movie.belongsTo(Director, {
+  foreignKey: {
+    name: 'director_id',
+    allowNull: false,
+  },
+  onDelete: 'cascade',
+  onUpdate: 'cascade',
+});
+
+module.exports = Movie;

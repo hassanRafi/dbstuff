@@ -6,7 +6,7 @@ const sequelize = new Sequelize('movies_db', 'root', 'hassan', {
   define: {
     timestamps: false,
   },
-  logging: false,
+  // logging: false,
 });
 
 module.exports = sequelize;

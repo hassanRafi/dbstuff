@@ -27,28 +27,70 @@ const schemaMovieUpdate = Joi.object().keys({
   metascore: Joi.number(),
   votes: Joi.number(),
   gross_earning_in_mil: Joi.number(),
-  director_id: Joi.number(),
+  director_id: Joi.number().required(),
   actor: Joi.string().min(2).max(100),
   year: Joi.number(),
 });
 
-const movieId = Joi.object().keys({
-  movieId: Joi.number().required(),
+const schemaId = Joi.object().keys({
+  id: Joi.number(),
 });
 
-const directorId = Joi.object().keys({
-  id: Joi.number().required(),
-});
-
-const directorName = Joi.object().keys({
+const schemaDirectorName = Joi.object().keys({
   director: Joi.string().required(),
 });
 
+/*
+ * Validate function return true when there is error
+ *
+ */
+function validateId(id) {
+  const { error } = Joi.validate({ id }, schemaId);
+  if (error === null) {
+    return false;
+  }
+  return true;
+}
+
+function validateAddDirector(details) {
+  const { error } = Joi.validate(details, schemaDirectorAdd);
+  if (error === null) {
+    return false;
+  }
+  return true;
+}
+
+function validateUpdateDirector(id, details) {
+  const idError = validateId(id); // Result will be true or false
+  const { error: nameError } = Joi.validate(details, schemaDirectorName);
+
+  if (idError === false && nameError === null) {
+    return false;
+  }
+  return true;
+}
+
+function validateAddMovie(details) {
+  const { error } = Joi.validate(details, schemaMovieAdd);
+  if (error === null) {
+    return false;
+  }
+  return true;
+}
+
+function validateUpdateMovie(id, details) {
+  const idError = validateId(id);
+  const { error } = Joi.validate(details, schemaMovieUpdate);
+
+  if (idError === false && error === null) {
+    return false;
+  }
+  return true;
+}
 module.exports = {
-  schemaDirectorAdd,
-  schemaMovieAdd,
-  movieId,
-  schemaMovieUpdate,
-  directorId,
-  directorName,
+  validateId,
+  validateAddDirector,
+  validateUpdateDirector,
+  validateAddMovie,
+  validateUpdateMovie,
 };

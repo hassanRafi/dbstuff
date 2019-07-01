@@ -15,7 +15,7 @@ app.use(morgan('combined'));
 
 app.use(bodyParser.json()); // body was undefined before using this
 
-const port = 5000;
+const port = 6000;
 
 app.use('/api/directors', directorRouter);
 
