@@ -14,6 +14,9 @@ directorRouter.get('/', (req, res) => {
 
 directorRouter.get('/:id', (req, res) => {
   const { error } = Joi.validate({ id: req.params.id }, validation.directorId);
+  if (error) {
+    res.status(400).send('Please provide integer as director id');
+  }
   Director.findOne({ where: { id: req.params.id } })
     .then((result) => {
       if (result === null || error !== null) {
@@ -47,18 +50,17 @@ directorRouter.post('/', (req, res) => {
 directorRouter.put('/:directorId', (req, res) => {
   const { error: idError } = Joi.validate({ id: req.params.directorId }, validation.directorId);
   const { error: nameError } = Joi.validate(req.body, validation.directorName);
-
   if (idError === null && nameError === null) {
     Director.findOne({ where: { id: req.params.directorId } })
       .then((dir) => {
         if (dir === null) {
           res.status(400).send('No director with the given id exists');
-        } else {
-          dir.update({
-            director: req.body.director,
-          }).then(result => res.send(result)).catch(err => console.log(err));
         }
+        return dir.update({
+          director: req.body.director,
+        });
       })
+      .then(result => res.send(result))
       .catch(err => console.log(err));
   } else {
     res.status(400).send('There is a problem either with id or name of director');

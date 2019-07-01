@@ -1,6 +1,6 @@
 const sequelize = require('../utils/connection');
 const Director = require('../models/director');
-const Movie = require('../models/director');
+const Movie = require('../models/movie');
 const data = require('../utils/movies');
 
 function getUniqueDirectors(data) {
